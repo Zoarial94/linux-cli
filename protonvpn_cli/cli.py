@@ -218,6 +218,12 @@ def init_cli():
             "custom_dns": "None",
             "check_update_interval": "3",
             "api_domain": "https://api.protonvpn.ch",
+            "killswitch": "0",
+            "killswitch_options": {
+            	"use_advanced": "0",
+            	"interface_forward": "",
+            	"interface_local": "",
+            },
         }
         config["metadata"] = {
             "last_api_pull": "0",
@@ -372,6 +378,7 @@ def configure_cli():
             "5) Kill Switch\n"
             "6) Split Tunneling\n"
             "7) Purge Configuration\n"
+            "8) Configure Killswitch\n"
         )
 
         user_choice = input(
@@ -397,6 +404,8 @@ def configure_cli():
         elif user_choice == "6":
             set_split_tunnel()
             break
+        elif user_choice == "8":
+        	configure_killswitch_options()
         # Make sure this is always the last option
         elif user_choice == "7":
             purge_configuration()
@@ -410,6 +419,51 @@ def configure_cli():
             )
             time.sleep(0.5)
 
+def configure_killswitch_options():
+    """
+	    This enables the advanced configuration of the kill switch.
+	    This should assist with the github issues #8, #75, and #130. (Allowing virtual and other interfaces)
+	    There should be a prompt that confirms the user wants this.
+    """
+    
+    print("Do NOT use this unless you know exactly what you are doing.")
+    
+    while True:
+        print(
+            "What do you want to change?\n"
+            "\n"
+            "1) Forward Interface\n"
+            "2) Accept Interface\n"
+            "3) \n"
+            "4) \n"
+            "5) Enable Advanced Options\n"
+            "6) Disable Advanced Options\n"
+            "7) Purge Configuration\n"
+        )
+
+        user_choice = input(
+            "Please enter your choice or leave empty to quit: "
+        )
+
+        user_choice = user_choice.lower().strip()
+        if user_choice == "1":
+            set_interface_forward(write=True)
+            break
+        elif user_choice == "2":
+            set_interface_local(write=True)
+            break
+        # Make sure this is always the last option
+        elif user_choice == "7":
+            #purge_killswitch_configuration()
+            break
+        elif user_choice == "":
+            print("Quitting killswitch configuration.")
+            return
+        else:
+            print(
+                "[!] Invalid choice. Please enter the number of your choice.\n"
+            )
+            time.sleep(0.5)
 
 def purge_configuration():
     """Purges CLI configuration"""
@@ -710,3 +764,16 @@ def set_split_tunnel():
 
     print()
     print("Split tunneling configuration updated.")
+    
+   	
+def set_interface_forward(write=False):
+    print("Setting interfaces to forward.")
+    
+    print("Finished setting interfaces to forward.")
+
+def set_interface_local(write=False):
+    print("Setting interfaces to accept to local.")
+    
+    print("Finished setting interfaces to accept to local.")
+
+    
