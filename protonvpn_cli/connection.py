@@ -837,7 +837,7 @@ def manage_killswitch(mode, proto=None, port=None):
             "iptables -A INPUT -p {0} -m {1} --sport {2} -j ACCEPT".format(proto.lower(), proto.lower(), port), # noqa
         ]
 
-        if int(get_config_value("USER", "killswitch")) == 2:
+        if int(get_config_value("killswitch", "allow_lan_access")) == 1:
             # Getting local network information
             default_nic = get_default_nic()
             local_network = subprocess.run(
@@ -853,6 +853,35 @@ def manage_killswitch(mode, proto=None, port=None):
 
             for lan_command in exclude_lan_commands:
                 iptables_commands.append(lan_command)
+                
+        # Killswitch has a value of 2 if the advanced options are
+        if int(get_config_value("USER", "killswitch")) == 2:
+        
+            # Forward interfaces if any
+            interfaces = get_config_value("killswitch", "interface_forward")
+            if interfaces != "None":
+                interfaces = interfaces.split()
+                
+                # Required to make forwarded packets look like normal packets
+                iptables_commands.append("iptables -t nat -A POSTROUTING -o {0} -j MASQUERADE".format(device))
+                
+                for interface in interfaces:
+                    # Forward packets from the interface
+                    iptables_commands.append("iptables -A FORWARD -i {1} -o {0} -j ACCEPT".format(device, interface))
+                    # Forward packets to the interface
+                    iptables_commands.append("iptables -A FORWARD -i {0} -o {1} -j ACCEPT".format(device, interface))
+            
+            # Allow interfaces if any
+            interfaces = get_config_value("killswitch", "interface_local") 
+            if interfaces != "None":
+                interfaces = interfaces.split()
+                
+                for interface in interfaces:
+                    # Allow packets from the interface
+                    iptables_commands.append("iptables -A INPUT -i {0} -j ACCEPT".format(interface))
+                    # Allow packets to the interface
+                    iptables_commands.append("iptables -A OUTPUT -o {0} -j ACCEPT".format(interface))
+       
 
         for command in iptables_commands:
             command = command.split()

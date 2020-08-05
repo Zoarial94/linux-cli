@@ -219,11 +219,11 @@ def init_cli():
             "check_update_interval": "3",
             "api_domain": "https://api.protonvpn.ch",
             "killswitch": "0",
-            "killswitch_options": {
-            	"use_advanced": "0",
-            	"interface_forward": "",
-            	"interface_local": "",
-            },
+        }
+        config["killswitch"] = {
+            "allow_lan_access": "0",
+            "interface_forward": "None",
+            "interface_local": "None",
         }
         config["metadata"] = {
             "last_api_pull": "0",
@@ -378,7 +378,6 @@ def configure_cli():
             "5) Kill Switch\n"
             "6) Split Tunneling\n"
             "7) Purge Configuration\n"
-            "8) Configure Killswitch\n"
         )
 
         user_choice = input(
@@ -404,8 +403,6 @@ def configure_cli():
         elif user_choice == "6":
             set_split_tunnel()
             break
-        elif user_choice == "8":
-        	configure_killswitch_options()
         # Make sure this is always the last option
         elif user_choice == "7":
             purge_configuration()
@@ -413,52 +410,6 @@ def configure_cli():
         elif user_choice == "":
             print("Quitting configuration.")
             sys.exit(0)
-        else:
-            print(
-                "[!] Invalid choice. Please enter the number of your choice.\n"
-            )
-            time.sleep(0.5)
-
-def configure_killswitch_options():
-    """
-	    This enables the advanced configuration of the kill switch.
-	    This should assist with the github issues #8, #75, and #130. (Allowing virtual and other interfaces)
-	    There should be a prompt that confirms the user wants this.
-    """
-    
-    print("Do NOT use this unless you know exactly what you are doing.")
-    
-    while True:
-        print(
-            "What do you want to change?\n"
-            "\n"
-            "1) Forward Interface\n"
-            "2) Accept Interface\n"
-            "3) \n"
-            "4) \n"
-            "5) Enable Advanced Options\n"
-            "6) Disable Advanced Options\n"
-            "7) Purge Configuration\n"
-        )
-
-        user_choice = input(
-            "Please enter your choice or leave empty to quit: "
-        )
-
-        user_choice = user_choice.lower().strip()
-        if user_choice == "1":
-            set_interface_forward(write=True)
-            break
-        elif user_choice == "2":
-            set_interface_local(write=True)
-            break
-        # Make sure this is always the last option
-        elif user_choice == "7":
-            #purge_killswitch_configuration()
-            break
-        elif user_choice == "":
-            print("Quitting killswitch configuration.")
-            return
         else:
             print(
                 "[!] Invalid choice. Please enter the number of your choice.\n"
@@ -671,7 +622,9 @@ def set_killswitch():
             "\n"
             "1) Enable Kill Switch (Block access to/from LAN)\n"
             "2) Enable Kill Switch (Allow access to/from LAN)\n"
-            "3) Disable Kill Switch"
+            "3) Enable Kill Switch with advanced options\n"
+            "4) Configure Advanced Options\n"
+            "5) Disable Kill Switch"
         )
         print()
         user_choice = input(
@@ -682,9 +635,15 @@ def set_killswitch():
             killswitch = 1
             break
         elif user_choice == "2":
-            killswitch = 2
+            killswitch = 1
+            set_config_value("killswitch", "allow_lan_access", 1)
             break
         elif user_choice == "3":
+            killswitch = 2
+            break
+        elif user_choice == "4":
+            configure_killswitch_options()
+        elif user_choice == "5":
             killswitch = 0
             break
         elif user_choice == "":
@@ -765,15 +724,79 @@ def set_split_tunnel():
     print()
     print("Split tunneling configuration updated.")
     
-   	
+    
 def set_interface_forward(write=False):
     print("Setting interfaces to forward.")
+    
+    to_forward = input(
+        "Please enter the interfaces you would like to forward (space separated): "
+    )
+    to_forward = to_forward.strip().split()
+    to_forward = " ".join(interface for interface in to_forward)
+    set_config_value("killswitch", "interface_forward", to_forward)
     
     print("Finished setting interfaces to forward.")
 
 def set_interface_local(write=False):
     print("Setting interfaces to accept to local.")
     
-    print("Finished setting interfaces to accept to local.")
-
+    to_local = input(
+        "Please enter the interfaces you would like to accept (space separated): "
+    )
+    to_local = to_local.strip().split()
+    to_local = " ".join(interface for interface in to_local)
+    set_config_value("killswitch", "interface_local", to_local)
     
+    print("Finished setting interfaces to accept to local.")
+    
+def purge_killswitch_configuration(write=False):
+    set_config_value("killswitch", "interface_local", "None")
+    set_config_value("killswitch", "interface_forward", "None")
+    set_config_value("killswitch", "allow_lan_access", 0)
+
+def configure_killswitch_options():
+    """
+        This enables the advanced configuration of the kill switch.
+        This should assist with the github issues #8, #75, and #130. (Allowing virtual and other interfaces)
+        There should be a prompt that confirms the user wants this.
+    """
+    
+    print("Do NOT use this unless you know exactly what you are doing.")
+    
+    while True:
+        print(
+            "\nOptions 1 and 2 are advanced configuration exclusive.\n"
+            "What do you want to change?\n"
+            "\n"
+            "1) Enable Forwarding from Interface\n"
+            "2) Enable Local Access from Interface\n"
+            "3) Enable LAN Access\n"
+            "4) Disable LAN Access\n"
+            "5) Purge Configuration\n"
+        )
+
+        user_choice = input(
+            "Please enter your choice or leave empty to quit: "
+        )
+
+        user_choice = user_choice.lower().strip()
+        if user_choice == "1":
+            set_interface_forward(write=True)
+        elif user_choice == "2":
+            set_interface_local(write=True)
+        elif user_choice == "3":
+            set_config_value("killswitch", "allow_lan_access", 1)
+            print("Enabled LAN Access in Killswitch")
+        elif user_choice == "4":
+            set_config_value("killswitch", "allow_lan_access", 0)
+            print("Disabled LAN Access in Killswitch")
+        elif user_choice == "5":
+            purge_killswitch_configuration(True)
+        elif user_choice == "":
+            print("Quitting killswitch configuration.")
+            return
+        else:
+            print(
+                "[!] Invalid choice. Please enter the number of your choice.\n"
+            )
+            time.sleep(0.5)
