@@ -633,6 +633,7 @@ def set_killswitch():
         user_choice = user_choice.lower().strip()
         if user_choice == "1":
             killswitch = 1
+            set_config_value("killswitch", "allow_lan_access", 0)
             break
         elif user_choice == "2":
             killswitch = 1
