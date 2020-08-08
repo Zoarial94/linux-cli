@@ -639,8 +639,11 @@ def set_killswitch():
             set_config_value("killswitch", "allow_lan_access", 1)
             break
         elif user_choice == "3":
-            killswitch = 2
-            break
+            confirmation = input("Are you sure you want to enable the advanced settings [y/n]: ")
+            if confirmation.lower() == "y":
+                killswitch = 2
+                break
+            #Else: do nothing
         elif user_choice == "4":
             configure_killswitch_options()
         elif user_choice == "5":
@@ -726,28 +729,31 @@ def set_split_tunnel():
     
     
 def set_interface_forward(write=False):
-    print("Setting interfaces to forward.")
     
     to_forward = input(
+        "\nEnter nothing to disable\n" +
         "Please enter the interfaces you would like to forward (space separated): "
     )
-    to_forward = to_forward.strip().split()
-    to_forward = " ".join(interface for interface in to_forward)
-    set_config_value("killswitch", "interface_forward", to_forward)
+    if to_forward == "":
+        set_config_value("killswitch", "interface_forward", "None")
+    else:
+        to_forward = to_forward.strip().split()
+        to_forward = " ".join(interface for interface in to_forward)
+        set_config_value("killswitch", "interface_forward", to_forward)
     
-    print("Finished setting interfaces to forward.")
 
 def set_interface_local(write=False):
-    print("Setting interfaces to accept to local.")
     
     to_local = input(
+        "\nEnter nothing to disable.\n" +
         "Please enter the interfaces you would like to accept (space separated): "
     )
-    to_local = to_local.strip().split()
-    to_local = " ".join(interface for interface in to_local)
-    set_config_value("killswitch", "interface_local", to_local)
-    
-    print("Finished setting interfaces to accept to local.")
+    if to_local == "":
+        set_config_value("killswitch", "interface_local", "None")
+    else:
+        to_local = to_local.strip().split()
+        to_local = " ".join(interface for interface in to_local)
+        set_config_value("killswitch", "interface_local", to_local)
     
 def purge_killswitch_configuration(write=False):
     set_config_value("killswitch", "interface_local", "None")
@@ -758,18 +764,18 @@ def configure_killswitch_options():
     """
         This enables the advanced configuration of the kill switch.
         This should assist with the github issues #8, #75, and #130. (Allowing virtual and other interfaces)
-        There should be a prompt that confirms the user wants this.
+        There should be a prompt that confirms the user wants to use this configuration.
     """
     
-    print("Do NOT use this unless you know exactly what you are doing.")
+    print("\n\n==Please do NOT use this unless you know exactly what you are doing==")
     
     while True:
         print(
             "\nOptions 1 and 2 are advanced configuration exclusive.\n"
             "What do you want to change?\n"
             "\n"
-            "1) Enable Forwarding from Interface\n"
-            "2) Enable Local Access from Interface\n"
+            "1) Enable/Disable Forwarding from Interface (Allows an internet connection)\n"
+            "2) Enable/Disable Local Access from Interface (Allows communication to the localhost)\n"
             "3) Enable LAN Access\n"
             "4) Disable LAN Access\n"
             "5) Purge Configuration\n"

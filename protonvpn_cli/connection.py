@@ -854,15 +854,15 @@ def manage_killswitch(mode, proto=None, port=None):
             for lan_command in exclude_lan_commands:
                 iptables_commands.append(lan_command)
                 
-        # Killswitch has a value of 2 if the advanced options are
+        # Killswitch has a value of 2 if the advanced options are to be used
         if int(get_config_value("USER", "killswitch")) == 2:
         
-            # Forward interfaces if any
+            # Forward interfaces if any (This would allow an internet connection - not to localhost)
             interfaces = get_config_value("killswitch", "interface_forward")
             if interfaces != "None":
                 interfaces = interfaces.split()
                 
-                # Required to make forwarded packets look like normal packets
+                # NAT is required
                 iptables_commands.append("iptables -t nat -A POSTROUTING -o {0} -j MASQUERADE".format(device))
                 
                 for interface in interfaces:
@@ -871,11 +871,12 @@ def manage_killswitch(mode, proto=None, port=None):
                     # Forward packets to the interface
                     iptables_commands.append("iptables -A FORWARD -i {0} -o {1} -j ACCEPT".format(device, interface))
             
-            # Allow interfaces if any
+            # Allow interfaces if any (This would allow the interface to talk to the localhost - not the internet)
             interfaces = get_config_value("killswitch", "interface_local") 
             if interfaces != "None":
                 interfaces = interfaces.split()
                 
+                # The following iptables commands could probably be more strict
                 for interface in interfaces:
                     # Allow packets from the interface
                     iptables_commands.append("iptables -A INPUT -i {0} -j ACCEPT".format(interface))
