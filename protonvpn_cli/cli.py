@@ -416,6 +416,7 @@ def configure_cli():
             )
             time.sleep(0.5)
 
+
 def purge_configuration():
     """Purges CLI configuration"""
 
@@ -643,7 +644,7 @@ def set_killswitch():
             if confirmation.lower() == "y":
                 killswitch = 2
                 break
-            #Else: do nothing
+            # Else: do nothing
         elif user_choice == "4":
             configure_killswitch_options()
         elif user_choice == "5":
@@ -726,12 +727,12 @@ def set_split_tunnel():
 
     print()
     print("Split tunneling configuration updated.")
-    
-    
+
+
 def set_interface_forward(write=False):
-    
+
     to_forward = input(
-        "\nEnter nothing to disable\n" +
+        "\nEnter nothing to disable\n"
         "Please enter the interfaces you would like to forward (space separated): "
     )
     if to_forward == "":
@@ -740,12 +741,12 @@ def set_interface_forward(write=False):
         to_forward = to_forward.strip().split()
         to_forward = " ".join(interface for interface in to_forward)
         set_config_value("killswitch", "interface_forward", to_forward)
-    
+
 
 def set_interface_local(write=False):
-    
+
     to_local = input(
-        "\nEnter nothing to disable.\n" +
+        "\nEnter nothing to disable.\n"
         "Please enter the interfaces you would like to accept (space separated): "
     )
     if to_local == "":
@@ -754,11 +755,13 @@ def set_interface_local(write=False):
         to_local = to_local.strip().split()
         to_local = " ".join(interface for interface in to_local)
         set_config_value("killswitch", "interface_local", to_local)
-    
+
+
 def purge_killswitch_configuration(write=False):
     set_config_value("killswitch", "interface_local", "None")
     set_config_value("killswitch", "interface_forward", "None")
     set_config_value("killswitch", "allow_lan_access", 0)
+
 
 def configure_killswitch_options():
     """
@@ -766,9 +769,9 @@ def configure_killswitch_options():
         This should assist with the github issues #8, #75, and #130. (Allowing virtual and other interfaces)
         There should be a prompt that confirms the user wants to use this configuration.
     """
-    
+
     print("\n\n==Please do NOT use this unless you know exactly what you are doing==")
-    
+
     while True:
         print(
             "\nOptions 1 and 2 are advanced configuration exclusive.\n"
